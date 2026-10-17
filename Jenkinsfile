@@ -40,7 +40,21 @@ pipeline {
         stage('Run Automated Tests') {
             steps {
                 dir('backend') {
-                    bat '.venv\\Scripts\\python.exe manage.py test'
+                    withCredentials([
+                        string(
+                            credentialsId: 'postgres-db-password',
+                            variable: 'DB_PASSWORD'
+                        )
+                    ]) {
+                        withEnv([
+                            'DB_NAME=myproject_db',
+                            'DB_USER=postgres',
+                            'DB_HOST=127.0.0.1',
+                            'DB_PORT=5432'
+                        ]) {
+                            bat '.venv\\Scripts\\python.exe manage.py test'
+                        }
+                    }
                 }
             }
         }
@@ -50,7 +64,6 @@ pipeline {
         success {
             echo 'Freelance project CI pipeline passed.'
         }
-
         failure {
             echo 'CI pipeline failed. Check Console Output.'
         }
